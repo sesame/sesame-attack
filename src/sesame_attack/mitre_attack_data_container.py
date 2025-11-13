@@ -4,7 +4,7 @@ from mitreattack.stix20.MitreAttackData import MitreAttackData
 
 
 class MitreAttackDataContainer:
-    def __init(self, enterprise_attack_path, mobile_attack_path):
+    def __init__(self, enterprise_attack_path, mobile_attack_path):
         self._enterprise_attack = Path(enterprise_attack_path).expanduser().resolve()
         self._mobile_attack = Path(mobile_attack_path).expanduser().resolve()
         self._enterprise = None
