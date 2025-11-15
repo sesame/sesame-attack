@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from .parser import TechniqueParser
 
 
 class DetailedTechniqueBuilder:
@@ -28,7 +29,9 @@ class DetailedTechniqueBuilder:
                 detailed_analytic = DetailedAnalytic(analytic, data_components)
                 detailed_detection_strategy.append_detailed_analytic(detailed_analytic)
 
-            detailed_technique.append_detection_detailed_detection_strategy(detailed_detection_strategy)
+            detailed_technique.append_detection_detailed_detection_strategy(
+                detailed_detection_strategy
+            )
 
         return detailed_technique
 
@@ -40,9 +43,13 @@ class DetailedTechniqueBuilder:
             return data_components
 
         for log_source_reference in log_source_references:
-            data_component_stix_id = log_source_reference.get("x_mitre_data_component_ref")
+            data_component_stix_id = log_source_reference.get(
+                "x_mitre_data_component_ref"
+            )
             if data_component_stix_id:
-                data_component = self._mitre_attack_data.get_object_by_stix_id(data_component_stix_id)
+                data_component = self._mitre_attack_data.get_object_by_stix_id(
+                    data_component_stix_id
+                )
                 data_components.append(data_component)
 
         return data_components
@@ -53,12 +60,18 @@ class DetailedTechniqueBuilder:
         if not analytics_ids:
             return []
 
-        return [self._mitre_attack_data.get_object_by_stix_id(analytic_id) for analytic_id in analytics_ids]
+        return [
+            self._mitre_attack_data.get_object_by_stix_id(analytic_id)
+            for analytic_id in analytics_ids
+        ]
 
     @staticmethod
     def _get_detection_strategies(technique, techniques_map):
         if detection_strategies := techniques_map.get(technique.id):
-            return [detection_strategy["object"] for detection_strategy in detection_strategies]
+            return [
+                detection_strategy["object"]
+                for detection_strategy in detection_strategies
+            ]
         return []
 
 
@@ -69,6 +82,13 @@ class DetailedTechnique:
 
     def append_detection_detailed_detection_strategy(self, detailed_detection_strategy):
         self._detection_strategies.append(detailed_detection_strategy)
+
+    def to_dict(self):
+        parsed_technique = TechniqueParser().parse(self._technique)
+
+        return {
+            "technique": parsed_technique,
+        }
 
 
 class DetailedDetectionStrategy:

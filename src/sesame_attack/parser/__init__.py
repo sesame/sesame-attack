@@ -29,12 +29,17 @@ class BaseObject(metaclass=ABCMeta):
                 case _:
                     raise ValueError(f"unsupported key: {key}")
 
-        parsed["stix_id"] = dict_["id"]
-        external_references = dict_["external_references"]
-        url, external_id = self._parse_external_references(external_references)
-        parsed["url"] = url
-        parsed["attack_id"] = external_id
-        parsed["domains"] = dict_["x_mitre_domains"]
+        if stix_id := dict_.get("id"):
+            parsed["stix_id"] = stix_id
+
+        if external_references := dict_.get("external_references"):
+            url, external_id = self._parse_external_references(external_references)
+            parsed["url"] = url
+            parsed["attack_id"] = external_id
+
+        if domains := dict_.get("x_mitre_domains"):
+            parsed["domains"] = domains
+
         return parsed
 
     @staticmethod
@@ -103,14 +108,16 @@ class TechniqueParser(BaseObject):
         dict_ = dict(obj)
         parsed["platforms"] = sorted(dict_.get("x_mitre_platforms", []))
         parsed["is_subtechnique"] = dict_.get("x_mitre_is_subtechnique", False)
-        if "kill_chain_phases" in dict_:
+
+        if kill_chain_phases := dict_.get("kill_chain_phases"):
             parsed["tactics"] = sorted(
                 [
                     phase.phase_name
-                    for phase in dict_["kill_chain_phases"]
+                    for phase in kill_chain_phases
                     if phase.kill_chain_name == "mitre-attack"
                 ]
             )
+
         return parsed
 
 
