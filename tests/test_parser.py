@@ -200,8 +200,11 @@ class TestTechniquesParser:
             "also evade detection from security products since the "
             "execution is masked under a legitimate process. ",
             "domains": ["enterprise-attack"],
+            "is_subtechnique": True,
+            "tactics": ["defense-evasion", "privilege-escalation"],
             "modified": "2025-10-24T17:48:19.059Z",
             "name": "Extra Window Memory Injection",
+            "platforms": ["Windows"],
             "stix_id": "attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298",
             "url": "https://attack.mitre.org/techniques/T1055/011",
         } == actual

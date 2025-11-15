@@ -100,6 +100,17 @@ class DetectionStrategiesParser(BaseObjects):
 class TechniqueParser(BaseObject):
     def parse(self, obj):
         parsed = super().parse(obj)
+        dict_ = dict(obj)
+        parsed["platforms"] = sorted(dict_.get("x_mitre_platforms", []))
+        parsed["is_subtechnique"] = dict_.get("x_mitre_is_subtechnique", False)
+        if "kill_chain_phases" in dict_:
+            parsed["tactics"] = sorted(
+                [
+                    phase.phase_name
+                    for phase in dict_["kill_chain_phases"]
+                    if phase.kill_chain_name == "mitre-attack"
+                ]
+            )
         return parsed
 
 
