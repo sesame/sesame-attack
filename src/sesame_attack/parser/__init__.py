@@ -1,19 +1,33 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta
 from abc import abstractmethod
+from stix2.utils import STIXdatetime
+from typing import Any
 
 
 class BaseObject(metaclass=ABCMeta):
-    def __init__(self, keys):
-        self._keys = keys
+    KEYS = ["created", "description", "name", "modified"]
+
+    def __init__(self):
+        self._keys = self.KEYS
 
     @abstractmethod
     def parse(self, obj):
-        dict_ = dict(obj)
+        dict_: dict[Any, str | STIXdatetime] = dict(obj)
         parsed = {}
 
         for key in self._keys:
-            parsed[key] = dict_[key]
+            match key:
+                case "description" | "name":
+                    parsed[key] = dict_.get(key)
+                case "created" | "modified":
+                    parsed[key] = (
+                        dict_[key]
+                        .isoformat(timespec="milliseconds")
+                        .replace("+00:00", "Z")
+                    )
+                case _:
+                    raise ValueError(f"unsupported key: {key}")
 
         parsed["stix_id"] = dict_["id"]
         external_references = dict_["external_references"]
@@ -49,12 +63,6 @@ class BaseObjects(metaclass=ABCMeta):
 
 
 class DataComponentParser(BaseObject):
-    KEYS = ["created", "description", "name", "modified"]
-
-    def __init__(self):
-        keys = self.KEYS
-        super().__init__(keys)
-
     def parse(self, obj):
         parsed = super().parse(obj)
         return parsed
@@ -66,15 +74,9 @@ class DataComponentsParser(BaseObjects):
 
 
 class AnalyticParser(BaseObject):
-    KEYS = ["created", "description", "name", "modified"]
-
-    def __init__(self):
-        keys = self.KEYS
-        super().__init__(keys)
-
     def parse(self, obj):
         parsed = super().parse(obj)
-        parsed["log_source_references"] = dict(obj)["x_mitre_log_source_references"]
+        parsed["log_source_references"] = dict(obj).get("x_mitre_log_source_references")
         return parsed
 
 
@@ -84,12 +86,6 @@ class AnalyticsParser(BaseObjects):
 
 
 class DetectionStrategyParser(BaseObject):
-    KEYS = ["created", "description", "name", "modified"]
-
-    def __init__(self):
-        keys = self.KEYS
-        super().__init__(keys)
-
     def parse(self, obj):
         parsed = super().parse(obj)
         parsed["analytic_refs"] = dict(obj)["x_mitre_analytic_refs"]
@@ -99,3 +95,14 @@ class DetectionStrategyParser(BaseObject):
 class DetectionStrategiesParser(BaseObjects):
     def __init__(self):
         super().__init__(DetectionStrategyParser())
+
+
+class TechniqueParser(BaseObject):
+    def parse(self, obj):
+        parsed = super().parse(obj)
+        return parsed
+
+
+class TechniquesParser(BaseObjects):
+    def __init__(self):
+        super().__init__(TechniqueParser())
